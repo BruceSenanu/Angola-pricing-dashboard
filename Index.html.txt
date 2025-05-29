@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Angola 48s Bond Analysis Model</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            margin: 0;
+            padding: 20px;
+            min-height: 100vh;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            color: #2c3e50;
+        }
+        .tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 2px solid #e9ecef;
+        }
+        .tab {
+            padding: 12px 24px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 16px;
+            font-weight: 600;
+            color: #6c757d;
+            transition: all 0.3s ease;
+        }
+        .tab.active {
+            color: #495057;
+            border-bottom: 3px solid #007bff;
+        }
+        .tab:hover {
+            color: #495057;
+            background: rgba(0,123,255,0.1);
+        }
+        .tab-content {
+            display: none;
+            animation: fadeIn 0.5s ease-in;
+        }
+        .tab-content.active {
+            display: block;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        .model-section {
+            background: #f8f9fa;
+            border-radius: 15px;
+            padding: 25px;
+            margin-bottom: 25px;
+            border-left: 5px solid #007bff;
+        }
+        .input-group {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .input-wrapper {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #495057;
+        }
+        input, select {
+            padding: 12px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: border-color 0.3s ease;
+        }
+        input:focus, select:focus {
+            outline: none;
+            border-color: #007bff;
+            box-shadow: 0 0 0 3px rgba(0,123,255,0.1);
+        }
+        .btn {
+            background: linear-gradient(135deg, #007bff, #0056b3);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            margin: 10px 5px;
+        }
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0,123,255,0.3);
+        }
+        .results-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .result-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            border-left: 4px solid #28a745;
+        }
+        .result-title {
+            font-weight: 600;
+            color: #495057;
+            margin-bottom: 10px;
+        }
+        .result-value {
+            font-size: 24px;
+            font-weight: 700;
+            color: #28a745;
+        }
+        .sensitivity-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .sensitivity-table th, .sensitivity-table td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #e9ecef;
+        }
+        .sensitivity-table th {
+            background: #007bff;
+            color: white;
+            font-weight: 600;
+        }
+        .sensitivity-table tr:hover {
+            background: #f8f9fa;
+        }
+        .chart-container {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            margin-top: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .scenario-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+        .scenario-card {
+            background: white;
+            border-radius: 12px;
+            padding: 20px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        }
+        .scenario-title {
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #495057;
+        }
+        .risk-high { border-left-color: #dc3545; }
+        .risk-medium { border-left-color: #ffc107; }
+        .risk-low { border-left-color: #28a745; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>Angola 48s Enhanced Bond Pricing Model</h1>
+            <p>Comprehensive Analysis Tool for 9.375% USD Bond Due 2048</p>
+        </div>
+
+        <div class="tabs">
+            <button class="tab active" onclick="showTab('sensitivity')">Sensitivity Analysis</button>
+            <button class="tab" onclick="showTab('duration')">Duration Analysis</button>
+            <button class="tab" onclick="showTab('scenarios')">Scenario Analysis</button>
+            <button class="tab" onclick="showTab('spreads')">Credit Spreads</button>
+        </div>
+
+        <div id="sensitivity" class="tab-content active">
+            <div class="model-section">
+                <h3>Price Sensitivity to Discount Rates</h3>
+                <p><strong>Why This Matters:</strong> Shows how sensitive your bond price is to changes in required returns. Critical for risk management and position sizing.</p>
+                
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label>Base Discount Rate (%)</label>
+                        <input type="number" id="baseRate" value="14" step="0.1">
+                    </div>
+                    <div class="input-wrapper">
+                        <label>Rate Range (+/-)</label>
+                        <input type="number" id="rateRange" value="4" step="0.5">
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="calculateSensitivity()">Calculate Sensitivity</button>
+                
+                <table class="sensitivity-table" id="sensitivityTable">
+                    <thead>
+                        <tr>
+                            <th>Discount Rate</th>
+                            <th>Bond Price</th>
+                            <th>Current Yield</th>
+                            <th>Price Change</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr><td>10.0%</td><td>89.45</td><td>10.48%</td><td>+19.1%</td></tr>
+                        <tr><td>12.0%</td><td>81.23</td><td>11.54%</td><td>+8.2%</td></tr>
+                        <tr><td>14.0%</td><td>75.10</td><td>12.48%</td><td>Base</td></tr>
+                        <tr><td>16.0%</td><td>70.15</td><td>13.36%</td><td>-6.6%</td></tr>
+                        <tr><td>18.0%</td><td>65.89</td><td>14.23%</td><td>-12.3%</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <div id="duration" class="tab-content">
+            <div class="model-section">
+                <h3>Duration Analysis</h3>
+                <p><strong>Why This Matters:</strong> Duration measures price sensitivity to interest rate changes. Essential for hedging and portfolio risk management.</p>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-title">Modified Duration</div>
+                        <div class="result-value">8.7 years</div>
+                        <p>1% rate increase → 8.7% price decrease</p>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-title">Macaulay Duration</div>
+                        <div class="result-value">9.9 years</div>
+                        <p>Weighted average time to cash flows</p>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-title">Dollar Duration</div>
+                        <div class="result-value">$65.30</div>
+                        <p>Dollar change per $1000 face value</p>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label>Interest Rate Shock (%)</label>
+                        <input type="number" id="rateShock" value="1" step="0.25">
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="calculateDurationImpact()">Calculate Impact</button>
+                
+                <div class="chart-container">
+                    <h4>Price Impact of Rate Changes</h4>
+                    <canvas id="durationChart" width="400" height="200"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div id="scenarios" class="tab-content">
+            <div class="model-section">
+                <h3>Scenario Analysis</h3>
+                <p><strong>Why This Matters:</strong> Angola's economy is heavily oil-dependent. Different scenarios help assess potential outcomes.</p>
+                
+                <div class="scenario-grid">
+                    <div class="scenario-card risk-low">
+                        <div class="scenario-title">🟢 Bull Case</div>
+                        <p><strong>Oil Price:</strong> $90+ per barrel</p>
+                        <p><strong>Economic Growth:</strong> 4%+</p>
+                        <p><strong>Expected Yield:</strong> 10-12%</p>
+                        <p><strong>Bond Price:</strong> 85-95</p>
+                        <p><strong>Probability:</strong> 25%</p>
+                    </div>
+                    
+                    <div class="scenario-card risk-medium">
+                        <div class="scenario-title">🟡 Base Case</div>
+                        <p><strong>Oil Price:</strong> $70-80 per barrel</p>
+                        <p><strong>Economic Growth:</strong> 2-3%</p>
+                        <p><strong>Expected Yield:</strong> 13-15%</p>
+                        <p><strong>Bond Price:</strong> 70-80</p>
+                        <p><strong>Probability:</strong> 50%</p>
+                    </div>
+                    
+                    <div class="scenario-card risk-high">
+                        <div class="scenario-title">🔴 Bear Case</div>
+                        <p><strong>Oil Price:</strong> $50-60 per barrel</p>
+                        <p><strong>Economic Growth:</strong> 0-1%</p>
+                        <p><strong>Expected Yield:</strong> 18-25%</p>
+                        <p><strong>Bond Price:</strong> 45-65</p>
+                        <p><strong>Probability:</strong> 25%</p>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label>Oil Price Scenario</label>
+                        <select id="oilPrice" onchange="updateScenario()">
+                            <option value="base">Base: $75/barrel</option>
+                            <option value="high">High: $90/barrel</option>
+                            <option value="low">Low: $55/barrel</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="spreads" class="tab-content">
+            <div class="model-section">
+                <h3>Credit Spread Analysis</h3>
+                <p><strong>Why This Matters:</strong> Tracks Angola's risk premium vs. US Treasuries. Key indicator of market sentiment.</p>
+                
+                <div class="results-grid">
+                    <div class="result-card">
+                        <div class="result-title">Current Spread</div>
+                        <div class="result-value">900 bps</div>
+                        <p>Angola 48s vs 30-year Treasury</p>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-title">Historical Average</div>
+                        <div class="result-value">750 bps</div>
+                        <p>3-year average spread</p>
+                    </div>
+                    <div class="result-card">
+                        <div class="result-title">Spread Direction</div>
+                        <div class="result-value">Widening</div>
+                        <p>Risk perception increasing</p>
+                    </div>
+                </div>
+
+                <div class="input-group">
+                    <div class="input-wrapper">
+                        <label>US Treasury 30Y Yield (%)</label>
+                        <input type="number" id="treasuryYield" value="5.04" step="0.01">
+                    </div>
+                    <div class="input-wrapper">
+                        <label>Target Spread (bps)</label>
+                        <input type="number" id="targetSpread" value="900" step="25">
+                    </div>
+                </div>
+                
+                <button class="btn" onclick="calculateSpreadImpact()">Calculate Impact</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function showTab(tabName) {
+            // Hide all tab contents
+            const contents = document.querySelectorAll('.tab-content');
+            contents.forEach(content => content.classList.remove('active'));
+            
+            // Remove active class from all tabs
+            const tabs = document.querySelectorAll('.tab');
+            tabs.forEach(tab => tab.classList.remove('active'));
+            
+            // Show selected tab content
+            document.getElementById(tabName).classList.add('active');
+            
+            // Add active class to clicked tab
+            event.target.classList.add('active');
+        }
+
+        function calculateSensitivity() {
+            const baseRate = parseFloat(document.getElementById('baseRate').value);
+            const range = parseFloat(document.getElementById('rateRange').value);
+            
+            const rates = [];
+            for (let i = -range; i <= range; i += 1) {
+                rates.push(baseRate + i);
+            }
+            
+            const tbody = document.querySelector('#sensitivityTable tbody');
+            tbody.innerHTML = '';
+            
+            rates.forEach(rate => {
+                // Simplified bond pricing formula for demonstration
+                const price = calculateBondPrice(rate);
+                const currentYield = (9.375 / price * 100).toFixed(2);
+                const priceChange = ((price - 75.10) / 75.10 * 100).toFixed(1);
+                
+                const row = tbody.insertRow();
+                row.innerHTML = `
+                    <td>${rate.toFixed(1)}%</td>
+                    <td>${price.toFixed(2)}</td>
+                    <td>${currentYield}%</td>
+                    <td>${priceChange > 0 ? '+' : ''}${priceChange}%</td>
+                `;
+            });
+        }
+
+        function calculateBondPrice(rate) {
+            // Simplified approximation for Angola 48s
+            // In practice, you'd use your full DCF model
+            const coupon = 4.6875; // Semi-annual
+            const periods = 46; // ~23 years * 2
+            const r = rate / 200; // Semi-annual rate
+            
+            let pv = 0;
+            for (let t = 1; t <= periods; t++) {
+                pv += coupon / Math.pow(1 + r, t);
+            }
+            pv += 100 / Math.pow(1 + r, periods); // Principal
+            
+            return pv;
+        }
+
+        function calculateDurationImpact() {
+            const shock = parseFloat(document.getElementById('rateShock').value);
+            const duration = 8.7; // Modified duration
+            const priceImpact = -duration * shock;
+            
+            alert(`Price Impact: ${priceImpact.toFixed(2)}%\nNew Price: ${(75.10 * (1 + priceImpact/100)).toFixed(2)}`);
+        }
+
+        function updateScenario() {
+            const scenario = document.getElementById('oilPrice').value;
+            // Update scenario display based on selection
+            // Implementation would update the scenario cards
+        }
+
+        function calculateSpreadImpact() {
+            const treasuryYield = parseFloat(document.getElementById('treasuryYield').value);
+            const targetSpread = parseFloat(document.getElementById('targetSpread').value);
+            const impliedYield = treasuryYield + (targetSpread / 100);
+            
+            alert(`Implied Angola Yield: ${impliedYield.toFixed(2)}%\nImplied Price: ${calculateBondPrice(impliedYield).toFixed(2)}`);
+        }
+
+        // Initialize with default sensitivity analysis
+        calculateSensitivity();
+    </script>
+</body>
+</html>
